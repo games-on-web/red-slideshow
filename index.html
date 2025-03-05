@@ -28,13 +28,24 @@
 
         async function fetchImage() {
             try {
-                const response = await fetch(`https://www.reddit.com/r/${community}/random.json`);
+                const response = await fetch(`https://www.reddit.com/r/${community}/random.json`, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
                 const data = await response.json();
                 if (data && data[0] && data[0].data && data[0].data.children) {
                     const post = data[0].data.children[0].data;
                     if (post && post.url && (post.url.endsWith(".jpg") || post.url.endsWith(".png") || post.url.endsWith(".jpeg"))) {
                         imageElement.src = post.url;
+                    } else {
+                        console.error("No valid image found in the fetched post.");
                     }
+                } else {
+                    console.error("Unexpected response structure:", data);
                 }
             } catch (error) {
                 console.error("Error fetching image:", error);
