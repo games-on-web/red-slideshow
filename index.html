@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Rotator</title>
+    <title>Red/Green Light Game</title>
     <style>
         body {
             display: flex;
@@ -11,20 +11,59 @@
             align-items: center;
             height: 100vh;
             background-color: black;
+            flex-direction: column;
         }
         img {
             max-width: 90%;
             max-height: 90vh;
             border-radius: 10px;
         }
+        #light {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            background-color: red;
+        }
     </style>
 </head>
 <body>
+    <div id="light"></div>
     <img id="image" src="" alt="Loading...">
 
     <script>
-        const communities = ["AnimeBooty", "AnimeGirlsAndThongs", "ZenlessZoneZeroHentai", "AnimeFeet", "AnimePussy", "PantiesHentai"];
+        const communities = ["AnimeBooty", "AnimeGirlsAndThongs", "ZenlessZoneZeroHentai", "AnimeFeet", "AnimePussy", "PantiesHentai", "KonoSubaNSFW", "animefeet2"];
         const imageElement = document.getElementById("image");
+        const lightElement = document.getElementById("light");
+
+        let isGreen = false; // Start with red light
+        let previousImages = []; // Array to store previously displayed image URLs
+        const maxPreviousImages = 50; // Limit the size of the previous images array
+        let imageCounter = 0; // Counter to track number of images shown
+
+        // Function to change the light color and set the next timeout
+        function changeLightColor() {
+            if (isGreen) {
+                // Set green light
+                lightElement.style.backgroundColor = "green";
+                const greenDuration = Math.floor(Math.random() * 11) + 10; // Random duration between 10s and 20s
+                setTimeout(() => {
+                    isGreen = false;
+                    changeLightColor();
+                }, greenDuration * 1000);
+            } else {
+                // Set red light
+                lightElement.style.backgroundColor = "red";
+                const redDuration = Math.floor(Math.random() * 7) + 4; // Random duration between 4s and 10s
+                setTimeout(() => {
+                    isGreen = true;
+                    changeLightColor();
+                }, redDuration * 1000);
+            }
+        }
+
+        // Start the light change cycle
+        changeLightColor();
 
         async function fetchImage() {
             const randomCommunity = communities[Math.floor(Math.random() * communities.length)];
@@ -45,8 +84,31 @@
                     .filter(post => post.url && (post.url.endsWith(".jpg") || post.url.endsWith(".png") || post.url.endsWith(".jpeg")));
 
                 if (posts.length > 0) {
-                    const randomPost = posts[Math.floor(Math.random() * posts.length)];
-                    imageElement.src = randomPost.url;
+                    // Filter out previously shown images
+                    const availablePosts = posts.filter(post => !previousImages.includes(post.url));
+
+                    if (availablePosts.length > 0) {
+                        const randomPost = availablePosts[Math.floor(Math.random() * availablePosts.length)];
+                        imageElement.src = randomPost.url;
+
+                        // Add the new image URL to the previousImages array
+                        previousImages.push(randomPost.url);
+                        imageCounter++;
+
+                        // Limit the size of the previous images array
+                        if (previousImages.length > maxPreviousImages) {
+                            previousImages.shift(); // Remove the oldest image URL to avoid memory overload
+                        }
+
+                        // Reset the image history every 10 images
+                        if (imageCounter >= 10) {
+                            previousImages = []; // Clear the previous image history
+                            imageCounter = 0; // Reset the counter
+                            console.log("Image history reset.");
+                        }
+                    } else {
+                        console.log("No new unique images available.");
+                    }
                 } else {
                     console.error("No valid image posts found.");
                 }
