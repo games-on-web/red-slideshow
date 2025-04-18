@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>database</title>
+  <title>Red/Green Light Game</title>
   <style>
     body {
       display: flex;
@@ -13,6 +13,7 @@
       background-color: black;
       flex-direction: column;
       transition: background-color 0.3s;
+      overflow: hidden;
     }
 
     img {
@@ -46,11 +47,32 @@
       0% { background-color: red; }
       100% { background-color: black; }
     }
+
+    #swallowText {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 5rem;
+      color: white;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 10;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+      font-weight: bold;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <div id="light"></div>
   <img id="image" src="" alt="Loading..." />
+  <div id="swallowText">SWALLOW ALL!</div>
 
   <script>
     const communities = [
@@ -58,6 +80,7 @@
       "AnimeFeet", "AnimePussy", "PantiesHentai", "KonoSubaNSFW",
       "animefeet2", "Smelly_Hentai_Feet", "thighdeology"
     ];
+
     const imageElement = document.getElementById("image");
     const lightElement = document.getElementById("light");
     const body = document.body;
@@ -93,7 +116,16 @@
       }
     }
 
-    changeLightColor();
+    function maybeShowSwallowText() {
+      const chance = Math.floor(Math.random() * 100);
+      if (chance === 0) {
+        const textEl = document.getElementById("swallowText");
+        textEl.style.opacity = "1";
+        setTimeout(() => {
+          textEl.style.opacity = "0";
+        }, 1500);
+      }
+    }
 
     async function fetchImage() {
       const randomCommunity = communities[Math.floor(Math.random() * communities.length)];
@@ -120,10 +152,12 @@
         if (availablePosts.length > 0) {
           const randomPost = availablePosts[Math.floor(Math.random() * availablePosts.length)];
           const url = randomPost.url.endsWith(".gifv")
-            ? randomPost.url.replace(".gifv", ".gif")  // Convert gifv to gif
+            ? randomPost.url.replace(".gifv", ".gif")
             : randomPost.url;
 
           imageElement.src = url;
+          maybeShowSwallowText();
+
           previousImages.push(url);
           imageCounter++;
 
@@ -134,10 +168,7 @@
           if (imageCounter >= 10) {
             previousImages = [];
             imageCounter = 0;
-            console.log("Image history reset.");
           }
-        } else {
-          console.log("No new unique images available.");
         }
 
       } catch (error) {
@@ -145,6 +176,7 @@
       }
     }
 
+    changeLightColor();
     fetchImage();
     setInterval(fetchImage, 5000);
   </script>
